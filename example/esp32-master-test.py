@@ -1,19 +1,21 @@
 import time
 
 def send_wsled(i2c, led, r, g, b):
-    tmp = bytearray(5)
+    tmp = bytearray(6)
     tmp[0] = 0x05
-    tmp[1] = led
-    tmp[2] = r
-    tmp[3] = g
-    tmp[4] = b
+    tmp[1] = 0x05
+    tmp[2] = led
+    tmp[3] = r
+    tmp[4] = g
+    tmp[5] = b
     i2c.writeto(0x14, tmp)
 
 def send_wsrainbow(i2c, hue):
-    tmp = bytearray(3)
-    tmp[0] = 0x06
-    tmp[1] = hue >> 8
-    tmp[2] = hue & 0xff
+    tmp = bytearray(4)
+    tmp[0] = 0x05
+    tmp[1] = 0x06
+    tmp[2] = hue >> 8
+    tmp[3] = hue & 0xff
     i2c.writeto(0x14, tmp)
 
 
@@ -49,7 +51,19 @@ def test_hue():
         send_wsrainbow(i, hue)
         time.sleep_ms(50)
 
-    
+def set_ws_num(i2c, num):
+    tmp = bytearray(3)
+    tmp[0] = 0x05
+    tmp[1] = 0x03
+    tmp[2] = num
+    i2c.writeto(0x14, tmp)
+
+def set_ws_brightness(i2c, br):
+    tmp = bytearray(3)
+    tmp[0] = 0x05
+    tmp[1] = 0x04
+    tmp[2] = br
+    i2c.writeto(0x14, tmp)
 
 o = octopus()
 i = o.i2c_init()

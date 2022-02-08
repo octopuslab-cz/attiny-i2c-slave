@@ -1,45 +1,61 @@
 #include <Wire.h>
-
 #include <Adafruit_NeoPixel.h>
-#include <SoftwareSerial.h>
 
 #ifdef __AVR__
-#include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#include <avr/power.h>
 #endif
 
 #define LED_PIN  PB3
-
-SoftwareSerial SwSerial(-1, PB1);
 Adafruit_NeoPixel strip(45, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
-  delay(100);
-  SwSerial.begin(115200);
-  SwSerial.println("");
-  SwSerial.println("AT Tiny booting up");
-    
   Wire.begin(0x14);
   Wire.onReceive(receiveEvent);
 
-  strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
-  strip.show();            // Turn OFF all pixels ASAP
-  strip.setBrightness(10); // Set BRIGHTNESS to about 1/5 (max = 255)
+  strip.begin();
+  strip.show();
+  strip.setBrightness(10);
 
-  strip.rainbow(10000);
+  strip.setPixelColor(0, strip.Color(0, 255, 0));
   strip.show();
 }
 
-void set_led(int howMany) {
-for (int i = 0; i < howMany / 4; i++) {
-      int led = Wire.read();
-      byte r = Wire.read();
-      byte g = Wire.read();
-      byte b = Wire.read();
-      uint32_t color = strip.Color(r, g, b);
+void set_num_leds() {
+  byte len = Wire.read();
+  strip.updateLength(len);
+}
 
-      strip.setPixelColor(led, color);
-    }
-    strip.show();
+
+void set_led(int howMany) {
+  for (int i = 0; i < howMany / 4; i++) {
+    int led = Wire.read();
+    byte r = Wire.read();
+    byte g = Wire.read();
+    byte b = Wire.read();
+    uint32_t color = strip.Color(r, g, b);
+
+    strip.setPixelColor(led, color);
+  }
+  strip.show();
+}
+
+void fill_led() {
+  byte from = Wire.read();
+  byte count = Wire.read();
+  byte r = Wire.read();
+  byte g = Wire.read();
+  byte b = Wire.read();
+  uint32_t color = strip.Color(r, g, b);
+
+  strip.fill(color, from, count);
+  strip.show();
+}
+
+void set_brightness() {
+  byte bright = Wire.read();
+
+  strip.setBrightness(bright);
+  strip.show();
 }
 
 void set_rainbow() {
@@ -52,72 +68,48 @@ void set_rainbow() {
   strip.show();
 }
 
+void handle_strip(int howMany) {
+  switch (Wire.read()) {
+    case 0x03:
+      set_num_leds();
+      break;
 
-void receiveEvent(int howMany) {
+    case 0x04:
+      set_brightness();
+      break;
 
-  switch ( Wire.read() ) {
     case 0x05:
-      set_led(howMany-1);
+      set_led(howMany - 1);
       break;
 
     case 0x06:
       set_rainbow();
       break;
+
+    case 0x08:
+      fill_led();
+      break;
+  }
+}
+
+void receiveEvent(int howMany) {
+  if (howMany == 1) {
+    byte reg = Wire.read();
+    return;
   }
 
+  switch (Wire.read()) {
+    case 0x05:
+      handle_strip(howMany - 1);
+      break;
+  }
+
+  // Flush extra buffer
   while (Wire.available()) {
     char c = Wire.read();
-    SwSerial.write(c);
   }
 }
 
 void loop() {
-  //rainbow(10);
-}
 
-void colorWipe(uint32_t color, int wait) {
-  for (int i = 0; i < strip.numPixels(); i++) { // For each pixel in strip...
-    strip.setPixelColor(i, color);         //  Set pixel's color (in RAM)
-    strip.show();                          //  Update strip to match
-    delay(wait);                           //  Pause for a moment
-  }
-}
-
-void theaterChase(uint32_t color, int wait) {
-  for (int a = 0; a < 10; a++) { // Repeat 10 times...
-    for (int b = 0; b < 3; b++) { //  'b' counts from 0 to 2...
-      strip.clear();         //   Set all pixels in RAM to 0 (off)
-      // 'c' counts up from 'b' to end of strip in steps of 3...
-      for (int c = b; c < strip.numPixels(); c += 3) {
-        strip.setPixelColor(c, color); // Set pixel 'c' to value 'color'
-      }
-      strip.show(); // Update strip with new contents
-      delay(wait);  // Pause for a moment
-    }
-  }
-}
-
-void rainbow(int wait) {
-  for (long firstPixelHue = 0; firstPixelHue < 5 * 65536; firstPixelHue += 256) {
-    strip.rainbow(firstPixelHue);
-    strip.show(); // Update strip with new contents
-    delay(wait);  // Pause for a moment
-  }
-}
-
-void theaterChaseRainbow(int wait) {
-  int firstPixelHue = 0;     // First pixel starts at red (hue 0)
-  for (int a = 0; a < 30; a++) { // Repeat 30 times...
-    for (int b = 0; b < 3; b++) { //  'b' counts from 0 to 2...
-      strip.clear();         //   Set all pixels in RAM to 0 (off)
-      for (int c = b; c < strip.numPixels(); c += 3) {
-        int      hue   = firstPixelHue + c * 65536L / strip.numPixels();
-        uint32_t color = strip.gamma32(strip.ColorHSV(hue)); // hue -> RGB
-        strip.setPixelColor(c, color); // Set pixel 'c' to value 'color'
-      }
-      strip.show();                // Update strip with new contents
-      delay(wait);                 // Pause for a moment
-      firstPixelHue += 65536 / 90; // One cycle of color wheel over 90 frames
-    }
-  }
 }
