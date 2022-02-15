@@ -10,6 +10,7 @@ def send_wsled(i2c, led, r, g, b):
     tmp[5] = b
     i2c.writeto(0x14, tmp)
 
+
 def send_wsrainbow(i2c, hue):
     tmp = bytearray(4)
     tmp[0] = 0x05
@@ -19,8 +20,23 @@ def send_wsrainbow(i2c, hue):
     i2c.writeto(0x14, tmp)
 
 
-def test_singleled():
-    sleep = 10
+def set_ws_num(i2c, num):
+    tmp = bytearray(3)
+    tmp[0] = 0x05
+    tmp[1] = 0x03
+    tmp[2] = num
+    i2c.writeto(0x14, tmp)
+
+
+def set_ws_brightness(i2c, br):
+    tmp = bytearray(3)
+    tmp[0] = 0x05
+    tmp[1] = 0x04
+    tmp[2] = br
+    i2c.writeto(0x14, tmp)
+
+
+def test_singleled(sleep=10):
     while True:
         send_wsled(i, 0, 0,255,0)
         send_wsled(i, 1, 0,0,0)
@@ -44,26 +60,23 @@ def test_singleled():
         time.sleep_ms(sleep)
 
 
-def test_hue():
+def test_hue(delay=50):
     hue = 0
     while True:
         hue+=2048
         send_wsrainbow(i, hue)
-        time.sleep_ms(50)
+        time.sleep_ms(delay)
 
-def set_ws_num(i2c, num):
-    tmp = bytearray(3)
-    tmp[0] = 0x05
-    tmp[1] = 0x03
-    tmp[2] = num
-    i2c.writeto(0x14, tmp)
+def test_fade(fr=1, to=50, delay=50, inc=5):
+    for br in range(fr, to, inc):
+        set_ws_brightness(i, br)
+        time.sleep_ms(delay)
 
-def set_ws_brightness(i2c, br):
-    tmp = bytearray(3)
-    tmp[0] = 0x05
-    tmp[1] = 0x04
-    tmp[2] = br
-    i2c.writeto(0x14, tmp)
 
 o = octopus()
 i = o.i2c_init()
+
+
+while True:
+    test_fade(1,100,0, inc=15)
+    test_fade(100,1,0, inc=-15)
