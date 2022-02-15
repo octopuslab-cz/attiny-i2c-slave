@@ -34,6 +34,18 @@ def set_ws_brightness(i2c, br):
     tmp[1] = 0x04
     tmp[2] = br
     i2c.writeto(0x14, tmp)
+    
+    
+def fill_wsled(i2c, start, count, r, g, b):
+    tmp = bytearray(7)
+    tmp[0] = 0x05
+    tmp[1] = 0x08
+    tmp[2] = start
+    tmp[3] = count
+    tmp[4] = r
+    tmp[5] = g
+    tmp[6] = b
+    i2c.writeto(0x14, tmp)
 
 
 def test_singleled(sleep=10):
