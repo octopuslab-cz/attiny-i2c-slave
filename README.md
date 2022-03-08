@@ -1,13 +1,28 @@
 # AT Tiny 85 I2C Slave
 
+16bit memory addressing
 
-Supported write registers
+1st byte - register
+2nd byte - subregister
 
+
+## Supported read registers
+0x01 - System register
+
+
+## Supported write registers
 0x05 - WS Led register
 
 
+### System register - read
+0x01 - Firmware version
+  - return 3 bytes
+  - uint_8 - Major version
+  - uint_8 - Minor version
+  - uint_8 - Patch version
 
-## WS Led
+
+### WS Led register - write
 0x03 - Set number of led in strip
   - uint8 - Number of leds
 
