@@ -1,5 +1,11 @@
 import time
 
+
+def get_fw_version(i2c):
+    ver = i2c.readfrom_mem(0x14, 0x0101, 3, addrsize=16)
+    return "{}.{}.{}".format(ver[0],ver[1],ver[2])
+
+
 def send_wsled(i2c, led, r, g, b):
     tmp = bytearray(6)
     tmp[0] = 0x05
@@ -87,6 +93,8 @@ def test_fade(fr=1, to=50, delay=50, inc=5):
 
 o = octopus()
 i = o.i2c_init()
+
+print(get_fw_version(i))
 
 
 while True:
