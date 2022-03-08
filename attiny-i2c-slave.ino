@@ -1,3 +1,9 @@
+#define FW_MAJOR 0x01
+#define FW_MINOR 0x01
+#define FW_PATCH 0x01
+
+#define I2C_SLAVE_ADDR 0x14
+
 #include <Wire.h>
 #include <Adafruit_NeoPixel.h>
 
@@ -8,9 +14,11 @@
 #define LED_PIN  PB3
 Adafruit_NeoPixel strip(45, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+
 void setup() {
-  Wire.begin(0x14);
+  Wire.begin(I2C_SLAVE_ADDR);
   Wire.onReceive(receiveEvent);
+  Wire.onRequest(requestEvent);
 
   strip.begin();
   strip.show();
@@ -27,17 +35,19 @@ void setup() {
 byte i2c_register;
 byte i2c_systemreg;
 
-void set_led(int howMany) {
-  for (int i = 0; i < howMany / 4; i++) {
-    int led = Wire.read();
-    byte r = Wire.read();
-    byte g = Wire.read();
-    byte b = Wire.read();
-    uint32_t color = strip.Color(r, g, b);
+// I2C Read
+void requestEvent() {
+  switch (i2c_systemreg) {
+    case 0x01:
+      Wire.write(FW_MAJOR);
+      Wire.write(FW_MINOR);
+      Wire.write(FW_PATCH);
+      break;
 
-    strip.setPixelColor(led, color);
+    case 0x02:
+      Wire.write(0x20);
+      break;
   }
-  strip.show();
 }
 
 // I2C Write
