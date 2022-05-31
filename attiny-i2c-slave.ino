@@ -22,9 +22,12 @@ void setup() {
 
   strip.begin();
   strip.show();
-  strip.setBrightness(10);
+  strip.setBrightness(5);
 
-  strip.setPixelColor(0, strip.Color(0, 255, 0));
+  strip.setPixelColor(0, strip.Color(255, 0, 0));
+  strip.setPixelColor(1, strip.Color(0, 255, 0));
+  strip.setPixelColor(2, strip.Color(0, 0, 255));
+  strip.setPixelColor(3, strip.Color(255, 255, 255));
   strip.show();
 }
 
