@@ -44,3 +44,11 @@
   - uint8 - Red
   - uint8 - Green
   - uint8 - Blue
+
+0x09 - Fill led by single color with skip
+  - uint8 - Start led
+  - uint8 - Count
+  - uint8 - Skip
+  - uint8 - Red
+  - uint8 - Green
+  - uint8 - Blue
