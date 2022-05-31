@@ -1,4 +1,4 @@
-#define FW_MAJOR 0x01
+#define FW_MAJOR 0x02
 #define FW_MINOR 0x01
 #define FW_PATCH 0x01
 
@@ -11,7 +11,7 @@
 #include <avr/power.h>
 #endif
 
-#define LED_PIN  PB3
+#define LED_PIN PIN_PB3
 Adafruit_NeoPixel strip(45, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 
@@ -108,6 +108,10 @@ void handle_strip(int howMany) {
     case 0x08:
       fill_led();
       break;
+
+    case 0x09:
+      fill_led_every_x();
+      break;
   }
 }
 
@@ -162,6 +166,25 @@ void fill_led() {
   strip.fill(color, from, count);
   strip.show();
 }
+
+
+// 0x09
+void fill_led_every_x() {
+  byte from = Wire.read();
+  byte count = Wire.read();
+  byte skipled = Wire.read();
+  byte r = Wire.read();
+  byte g = Wire.read();
+  byte b = Wire.read();
+  uint32_t color = strip.Color(r, g, b);
+
+  for (int i = 0; i < count; i+=skipled+1) {
+    strip.setPixelColor(i, color);
+  }
+
+  strip.show();
+}
+
 
 void loop() {
 
